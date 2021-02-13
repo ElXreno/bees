@@ -1,23 +1,50 @@
-%global sha 1b9b437c11dd858213c963b14fe7771ab630c2b8
+%global __requires_exclude libcrucible\\.so
+
+%global debug_package %{nil}
+
 Name:           bees
-Version:        2020.10.10
+Version:        0.6.4
 Release:        1%{?dist}
 Summary:        Best-Effort Extent-Same, a btrfs dedup agent
 
-License:        GPL3
+License:        GPLv3
 URL:            https://github.com/Zygo/bees
-Source0:        https://github.com/Zygo/bees/archive/%{sha}.zip
+Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-BuildRequires:  make automake gcc gcc-c++ kernel-devel discount libuuid-devel btrfs-progs-devel
-Requires:       libuuid btrfs-progs
+# Not really required
+BuildRequires:  discount
+BuildRequires:  gcc-c++
+BuildRequires:  pkgconfig(libbtrfsutil)
+BuildRequires:  pkgconfig(uuid)
+BuildRequires:  systemd
 
-Patch0001:      0001-build-optimizations.patch
+Requires:       libcrucible-%{name}%{?_isa}
 
 %description
+bees is a block-oriented userspace deduplication agent designed for large btrfs
+filesystems. It is an offline dedupe combined with an incremental data scan
+capability to minimize time data spends on disk from write to dedupe.
+
+# libcrucible from bees
+%package -n     libcrucible-%{name}
+Summary:        crucible library for %{name}
+
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+
+%description -n libcrucible-%{name}
+crucible library for %{name}.
 
 
 %prep
-%autosetup -p1 -n bees-%{sha}
+%autosetup -p1
+
+# Right now default build flags brokes bees, possibly LTO issue
+# sed -i "s|CCFLAGS  =.*|CCFLAGS = -I../include -D_FILE_OFFSET_BITS=64 %%{build_cxxflags}|" makeflags
+
+cat <<EOF > localconf
+BEES_VERSION=v%{version}
+LIBDIR=%{_lib}
+EOF
 
 
 %build
@@ -25,20 +52,37 @@ Patch0001:      0001-build-optimizations.patch
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-export BEES_VERSION=%{version}
-export SYSTEMD_SYSTEM_UNIT_DIR=/usr/lib/systemd/system
 %make_install
 
 
+%post
+%systemd_post 'beesd@*.service'
+
+
+%preun
+%systemd_preun 'beesd@*.service'
+
+
+%postun
+%systemd_postun_with_restart 'beesd@*.service'
+
+
 %files
-/usr/sbin/beesd
-/usr/lib/bees/bees
-/etc/bees/beesd.conf.sample
-/usr/lib/systemd/system/beesd@.service
+%license COPYING
+%doc README.md
+%{_sbindir}/beesd
+%{_libdir}/%{name}/%{name}
+%{_unitdir}/beesd@.service
+%config %{_sysconfdir}/%{name}/beesd.conf.sample
+
+%files -n   libcrucible-%{name}
+%{_libdir}/libcrucible.so
 
 
 %changelog
+* Sat Feb 13 2021 ElXreno <elxreno@gmail.com> - 0.6.4-1
+- Update, little rewrite spec file
+
 * Tue Nov 24 2020 Piotr Rogowski <piotr.rogowski@creativestyle.pl> - 2020-10-10-1
 - Update version
 
