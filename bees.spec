@@ -3,8 +3,8 @@
 %global debug_package %{nil}
 
 Name:           bees
-Version:        0.6.4
-Release:        2%{?dist}
+Version:        0.6.5
+Release:        1%{?dist}
 Summary:        Best-Effort Extent-Same, a btrfs dedup agent
 
 License:        GPLv3
@@ -80,6 +80,9 @@ EOF
 
 
 %changelog
+* Sun Mar 21 2021 ElXreno <elxreno@gmail.com> - 0.6.5-1
+- Update to version 0.6.5
+
 * Sun Mar 21 2021 ElXreno <elxreno@gmail.com> - 0.6.4-2
 - rebuilt
 
