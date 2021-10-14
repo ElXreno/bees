@@ -3,8 +3,8 @@
 %global debug_package %{nil}
 
 Name:           bees
-Version:        0.6.5
-Release:        2%{?dist}
+Version:        0.7
+Release:        1%{?dist}
 Summary:        Best-Effort Extent-Same, a btrfs dedup agent
 
 License:        GPLv3
@@ -18,21 +18,15 @@ BuildRequires:  pkgconfig(libbtrfsutil)
 BuildRequires:  pkgconfig(uuid)
 BuildRequires:  systemd
 
-Requires:       libcrucible-%{name}%{?_isa}
+# https://github.com/Zygo/bees/commit/7933ccb660de3f4b5cd8d2ac2af00d4d4e6acdf3
+# Now libcrucible is statically linked to the binary
+# so now main package should replace libcrucible
+Obsoletes: libcrucible-%{name} <= %{version}-%{release}
 
 %description
 bees is a block-oriented userspace deduplication agent designed for large btrfs
 filesystems. It is an offline dedupe combined with an incremental data scan
 capability to minimize time data spends on disk from write to dedupe.
-
-# libcrucible from bees
-%package -n     libcrucible-%{name}
-Summary:        crucible library for %{name}
-
-Requires:       %{name}%{?_isa} = %{version}-%{release}
-
-%description -n libcrucible-%{name}
-crucible library for %{name}.
 
 
 %prep
@@ -75,11 +69,11 @@ EOF
 %{_unitdir}/beesd@.service
 %config %{_sysconfdir}/%{name}/beesd.conf.sample
 
-%files -n   libcrucible-%{name}
-%{_libdir}/libcrucible.so
-
 
 %changelog
+* Thu Oct 14 2021 ElXreno <elxreno@gmail.com> - 0.7-1
+- Update to version 0.7
+
 * Fri Sep 24 2021 ElXreno <elxreno@gmail.com> - 0.6.5-2
 - rebuilt
 
