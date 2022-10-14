@@ -1,9 +1,7 @@
 %global __requires_exclude libcrucible\\.so
 
-%global debug_package %{nil}
-
 Name:           bees
-Version:        0.7
+Version:        0.7.2
 Release:        1%{?dist}
 Summary:        Best-Effort Extent-Same, a btrfs dedup agent
 
@@ -11,8 +9,6 @@ License:        GPLv3
 URL:            https://github.com/Zygo/bees
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-# Not really required
-BuildRequires:  discount
 BuildRequires:  gcc-c++
 BuildRequires:  pkgconfig(libbtrfsutil)
 BuildRequires:  pkgconfig(uuid)
@@ -32,8 +28,7 @@ capability to minimize time data spends on disk from write to dedupe.
 %prep
 %autosetup -p1
 
-# Right now default build flags brokes bees, possibly LTO issue
-# sed -i "s|CCFLAGS  =.*|CCFLAGS = -I../include -D_FILE_OFFSET_BITS=64 %%{build_cxxflags}|" makeflags
+sed -i "s|CCFLAGS = .*||" makeflags
 
 cat <<EOF > localconf
 BEES_VERSION=v%{version}
@@ -71,6 +66,9 @@ EOF
 
 
 %changelog
+* Fri Oct 14 2022 ElXreno <elxreno@gmail.com> - 0.7.2-1
+- Update to version 0.7.2
+
 * Thu Oct 14 2021 ElXreno <elxreno@gmail.com> - 0.7-1
 - Update to version 0.7
 
